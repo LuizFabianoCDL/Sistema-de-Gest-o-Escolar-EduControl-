@@ -16,4 +16,4 @@ O projeto implementa um banco de dados relacional com 13 tabelas normalizadas at
 ### Instalação
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/EduControl-SQL-Project.git
+git clone https://github.com/seu-usuario/EduControl-SQL-Project.git](https://github.com/LuizFabianoCDL/Sistema-de-Gest-o-Escolar-EduControl-
