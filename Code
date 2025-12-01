@@ -1,0 +1,453 @@
+
+---
+
+## **2. SCRIPTS SQL COMPLETOS**
+
+### **2.1. `01_database_creation.sql`**
+
+```sql
+-- ============================================
+-- PROJETO EduControl - CRIAÇÃO DO BANCO DE DADOS
+-- ============================================
+
+-- Criação do Banco de Dados
+DROP DATABASE IF EXISTS EduControl;
+CREATE DATABASE EduControl CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE EduControl;
+
+-- ============================================
+-- TABELAS PRINCIPAIS
+-- ============================================
+
+-- Tabela ENDERECO
+CREATE TABLE ENDERECO (
+    endereco_id INT AUTO_INCREMENT PRIMARY KEY,
+    cep VARCHAR(8) NOT NULL,
+    logradouro VARCHAR(150) NOT NULL,
+    numero VARCHAR(10) NOT NULL,
+    complemento VARCHAR(50),
+    bairro VARCHAR(50) NOT NULL,
+    cidade VARCHAR(50) NOT NULL,
+    estado CHAR(2) NOT NULL,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_cep (cep),
+    INDEX idx_cidade_estado (cidade, estado)
+) ENGINE=InnoDB;
+
+-- Tabela ALUNO
+CREATE TABLE ALUNO (
+    aluno_id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf VARCHAR(11) UNIQUE NOT NULL,
+    data_nascimento DATE NOT NULL,
+    telefone VARCHAR(15),
+    email VARCHAR(100),
+    foto VARCHAR(255), -- Caminho da foto (simplificado para exemplo)
+    endereco_id INT NOT NULL,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ativo BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (endereco_id) 
+        REFERENCES ENDERECO(endereco_id)
+        ON DELETE RESTRICT,
+    INDEX idx_nome (nome),
+    INDEX idx_cpf (cpf),
+    INDEX idx_ativo (ativo),
+    CONSTRAINT chk_idade CHECK (
+        YEAR(CURDATE()) - YEAR(data_nascimento) - 
+        (DATE_FORMAT(CURDATE(), '%m%d') < DATE_FORMAT(data_nascimento, '%m%d')) 
+        BETWEEN 5 AND 25
+    )
+) ENGINE=InnoDB;
+
+-- Tabela RESPONSAVEL
+CREATE TABLE RESPONSAVEL (
+    responsavel_id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf VARCHAR(11) UNIQUE NOT NULL,
+    telefone VARCHAR(15) NOT NULL,
+    email VARCHAR(100),
+    parentesco VARCHAR(20) NOT NULL,
+    endereco_id INT NOT NULL,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (endereco_id) 
+        REFERENCES ENDERECO(endereco_id)
+        ON DELETE RESTRICT,
+    INDEX idx_nome (nome),
+    INDEX idx_cpf (cpf),
+    CONSTRAINT chk_parentesco CHECK (parentesco IN ('PAI', 'MAE', 'TUTOR', 'AVO', 'OUTRO'))
+) ENGINE=InnoDB;
+
+-- Tabela ANO_LETIVO
+CREATE TABLE ANO_LETIVO (
+    ano_letivo_id INT AUTO_INCREMENT PRIMARY KEY,
+    ano YEAR NOT NULL UNIQUE,
+    data_inicio DATE NOT NULL,
+    data_fim DATE NOT NULL,
+    status ENUM('PLANEJAMENTO', 'EM_ANDAMENTO', 'ENCERRADO') 
+        NOT NULL DEFAULT 'PLANEJAMENTO',
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (data_fim > data_inicio),
+    INDEX idx_ano (ano),
+    INDEX idx_status (status)
+) ENGINE=InnoDB;
+
+-- Tabela TURMA
+CREATE TABLE TURMA (
+    turma_id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_turma VARCHAR(20) NOT NULL,
+    serie VARCHAR(20) NOT NULL,
+    ano_letivo_id INT NOT NULL,
+    capacidade INT NOT NULL DEFAULT 40,
+    sala VARCHAR(10),
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ano_letivo_id) 
+        REFERENCES ANO_LETIVO(ano_letivo_id)
+        ON DELETE CASCADE,
+    UNIQUE KEY unq_turma_ano (nome_turma, ano_letivo_id),
+    INDEX idx_serie (serie),
+    INDEX idx_ano_letivo (ano_letivo_id),
+    CONSTRAINT chk_capacidade CHECK (capacidade BETWEEN 1 AND 50)
+) ENGINE=InnoDB;
+
+-- Tabela DISCIPLINA
+CREATE TABLE DISCIPLINA (
+    disciplina_id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_disciplina VARCHAR(50) NOT NULL UNIQUE,
+    carga_horaria INT NOT NULL,
+    ementa TEXT,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (carga_horaria > 0),
+    INDEX idx_nome (nome_disciplina)
+) ENGINE=InnoDB;
+
+-- Tabela PROFESSOR
+CREATE TABLE PROFESSOR (
+    professor_id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf VARCHAR(11) UNIQUE NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    telefone VARCHAR(15),
+    formacao VARCHAR(100),
+    data_contratacao DATE,
+    ativo BOOLEAN DEFAULT TRUE,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_nome (nome),
+    INDEX idx_cpf (cpf),
+    INDEX idx_ativo (ativo)
+) ENGINE=InnoDB;
+
+-- Tabela MATRICULA
+CREATE TABLE MATRICULA (
+    matricula_id INT AUTO_INCREMENT PRIMARY KEY,
+    aluno_id INT NOT NULL,
+    turma_id INT NOT NULL,
+    ano_letivo_id INT NOT NULL,
+    numero_matricula VARCHAR(20) UNIQUE NOT NULL,
+    data_matricula DATE NOT NULL DEFAULT (CURRENT_DATE),
+    status ENUM('ATIVA', 'CANCELADA', 'TRANCADA', 'CONCLUIDA') 
+        NOT NULL DEFAULT 'ATIVA',
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (aluno_id) 
+        REFERENCES ALUNO(aluno_id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (turma_id) 
+        REFERENCES TURMA(turma_id)
+        ON DELETE RESTRICT,
+    FOREIGN KEY (ano_letivo_id) 
+        REFERENCES ANO_LETIVO(ano_letivo_id)
+        ON DELETE RESTRICT,
+    UNIQUE KEY unq_aluno_turma_ano (aluno_id, turma_id, ano_letivo_id),
+    INDEX idx_num_matricula (numero_matricula),
+    INDEX idx_status (status),
+    INDEX idx_aluno (aluno_id),
+    INDEX idx_turma (turma_id)
+) ENGINE=InnoDB;
+
+-- Tabela ALOCACAO
+CREATE TABLE ALOCACAO (
+    alocacao_id INT AUTO_INCREMENT PRIMARY KEY,
+    professor_id INT NOT NULL,
+    turma_id INT NOT NULL,
+    disciplina_id INT NOT NULL,
+    dia_semana ENUM('SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB') NOT NULL,
+    horario TIME NOT NULL,
+    data_inicio DATE NOT NULL,
+    data_fim DATE,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (professor_id) 
+        REFERENCES PROFESSOR(professor_id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (turma_id) 
+        REFERENCES TURMA(turma_id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (disciplina_id) 
+        REFERENCES DISCIPLINA(disciplina_id)
+        ON DELETE RESTRICT,
+    UNIQUE KEY unq_prof_turma_disc_horario (professor_id, turma_id, disciplina_id, dia_semana, horario),
+    INDEX idx_professor (professor_id),
+    INDEX idx_turma (turma_id),
+    INDEX idx_disciplina (disciplina_id),
+    CONSTRAINT chk_datas CHECK (data_fim IS NULL OR data_fim > data_inicio)
+) ENGINE=InnoDB;
+
+-- Tabela AVALIACAO
+CREATE TABLE AVALIACAO (
+    avaliacao_id INT AUTO_INCREMENT PRIMARY KEY,
+    turma_id INT NOT NULL,
+    disciplina_id INT NOT NULL,
+    data_aplicacao DATE NOT NULL,
+    tipo ENUM('PROVA', 'TRABALHO', 'SEMINARIO', 'PROJETO', 'OUTRO') 
+        NOT NULL DEFAULT 'PROVA',
+    peso DECIMAL(3,2) NOT NULL DEFAULT 1.00,
+    descricao VARCHAR(200),
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (turma_id) 
+        REFERENCES TURMA(turma_id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (disciplina_id) 
+        REFERENCES DISCIPLINA(disciplina_id)
+        ON DELETE RESTRICT,
+    CHECK (peso > 0 AND peso <= 5.00),
+    INDEX idx_turma_disciplina (turma_id, disciplina_id),
+    INDEX idx_data (data_aplicacao),
+    INDEX idx_tipo (tipo)
+) ENGINE=InnoDB;
+
+-- Tabela NOTA
+CREATE TABLE NOTA (
+    nota_id INT AUTO_INCREMENT PRIMARY KEY,
+    avaliacao_id INT NOT NULL,
+    aluno_id INT NOT NULL,
+    valor DECIMAL(4,2) NOT NULL,
+    observacao VARCHAR(100),
+    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (avaliacao_id) 
+        REFERENCES AVALIACAO(avaliacao_id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (aluno_id) 
+        REFERENCES ALUNO(aluno_id)
+        ON DELETE CASCADE,
+    CHECK (valor >= 0 AND valor <= 10),
+    UNIQUE KEY unq_avaliacao_aluno (avaliacao_id, aluno_id),
+    INDEX idx_aluno (aluno_id),
+    INDEX idx_valor (valor),
+    INDEX idx_avaliacao (avaliacao_id)
+) ENGINE=InnoDB;
+
+-- Tabela FREQUENCIA
+CREATE TABLE FREQUENCIA (
+    frequencia_id INT AUTO_INCREMENT PRIMARY KEY,
+    aluno_id INT NOT NULL,
+    turma_id INT NOT NULL,
+    disciplina_id INT NOT NULL,
+    data_registro DATE NOT NULL,
+    presenca ENUM('PRESENTE', 'FALTA', 'FALTA_JUSTIFICADA', 'ATRASO') 
+        NOT NULL DEFAULT 'PRESENTE',
+    justificativa TEXT,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (aluno_id) 
+        REFERENCES ALUNO(aluno_id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (turma_id) 
+        REFERENCES TURMA(turma_id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (disciplina_id) 
+        REFERENCES DISCIPLINA(disciplina_id)
+        ON DELETE RESTRICT,
+    UNIQUE KEY unq_aluno_turma_disc_data (aluno_id, turma_id, disciplina_id, data_registro),
+    INDEX idx_aluno_data (aluno_id, data_registro),
+    INDEX idx_turma_disciplina (turma_id, disciplina_id),
+    INDEX idx_presenca (presenca)
+) ENGINE=InnoDB;
+
+-- Tabela MENSALIDADE
+CREATE TABLE MENSALIDADE (
+    mensalidade_id INT AUTO_INCREMENT PRIMARY KEY,
+    matricula_id INT NOT NULL,
+    vencimento DATE NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    status ENUM('PENDENTE', 'PAGA', 'ATRASADA', 'CANCELADA', 'ISENTA') 
+        NOT NULL DEFAULT 'PENDENTE',
+    data_geracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_vencimento_real DATE,
+    FOREIGN KEY (matricula_id) 
+        REFERENCES MATRICULA(matricula_id)
+        ON DELETE CASCADE,
+    CHECK (valor >= 0),
+    INDEX idx_matricula (matricula_id),
+    INDEX idx_vencimento_status (vencimento, status),
+    INDEX idx_status (status),
+    INDEX idx_vencimento (vencimento)
+) ENGINE=InnoDB;
+
+-- Tabela PAGAMENTO
+CREATE TABLE PAGAMENTO (
+    pagamento_id INT AUTO_INCREMENT PRIMARY KEY,
+    mensalidade_id INT NOT NULL,
+    responsavel_id INT NOT NULL,
+    data_pagamento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    valor_pago DECIMAL(10,2) NOT NULL,
+    forma_pagamento ENUM('DINHEIRO', 'PIX', 'CARTAO_CREDITO', 'CARTAO_DEBITO', 'BOLETO', 'TRANSFERENCIA', 'OUTRO') 
+        NOT NULL,
+    comprovante VARCHAR(255),
+    observacao TEXT,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mensalidade_id) 
+        REFERENCES MENSALIDADE(mensalidade_id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (responsavel_id) 
+        REFERENCES RESPONSAVEL(responsavel_id)
+        ON DELETE RESTRICT,
+    CHECK (valor_pago > 0),
+    INDEX idx_mensalidade (mensalidade_id),
+    INDEX idx_responsavel (responsavel_id),
+    INDEX idx_data_pagamento (data_pagamento),
+    INDEX idx_forma_pagamento (forma_pagamento)
+) ENGINE=InnoDB;
+
+-- ============================================
+-- PROCEDURES E FUNÇÕES ÚTEIS
+-- ============================================
+
+-- Função para calcular idade do aluno
+DELIMITER //
+CREATE FUNCTION calcular_idade(data_nasc DATE) 
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    RETURN TIMESTAMPDIFF(YEAR, data_nasc, CURDATE());
+END //
+DELIMITER ;
+
+-- Procedure para gerar mensalidades automaticamente
+DELIMITER //
+CREATE PROCEDURE gerar_mensalidades_ano(
+    IN p_matricula_id INT,
+    IN p_valor_mensal DECIMAL(10,2),
+    IN p_ano INT
+)
+BEGIN
+    DECLARE v_mes INT DEFAULT 1;
+    DECLARE v_data_vencimento DATE;
+    
+    WHILE v_mes <= 12 DO
+        SET v_data_vencimento = DATE_FORMAT(CONCAT(p_ano, '-', LPAD(v_mes, 2, '0'), '-05'), '%Y-%m-%d');
+        
+        INSERT INTO MENSALIDADE (matricula_id, vencimento, valor, status)
+        VALUES (p_matricula_id, v_data_vencimento, p_valor_mensal, 'PENDENTE');
+        
+        SET v_mes = v_mes + 1;
+    END WHILE;
+END //
+DELIMITER ;
+
+-- ============================================
+-- TRIGGERS PARA INTEGRIDADE
+-- ============================================
+
+-- Trigger para atualizar status da mensalidade após pagamento
+DELIMITER //
+CREATE TRIGGER after_pagamento_insert
+AFTER INSERT ON PAGAMENTO
+FOR EACH ROW
+BEGIN
+    UPDATE MENSALIDADE 
+    SET status = 'PAGA',
+        data_vencimento_real = NEW.data_pagamento
+    WHERE mensalidade_id = NEW.mensalidade_id;
+END //
+DELIMITER ;
+
+-- Trigger para verificar capacidade da turma antes de matrícula
+DELIMITER //
+CREATE TRIGGER before_matricula_insert
+BEFORE INSERT ON MATRICULA
+FOR EACH ROW
+BEGIN
+    DECLARE v_capacidade INT;
+    DECLARE v_matriculados INT;
+    
+    -- Obter capacidade da turma
+    SELECT capacidade INTO v_capacidade
+    FROM TURMA 
+    WHERE turma_id = NEW.turma_id;
+    
+    -- Contar matrículas ativas na turma
+    SELECT COUNT(*) INTO v_matriculados
+    FROM MATRICULA 
+    WHERE turma_id = NEW.turma_id 
+      AND status = 'ATIVA';
+    
+    IF v_matriculados >= v_capacidade THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Turma atingiu capacidade máxima de alunos';
+    END IF;
+END //
+DELIMITER ;
+
+-- ============================================
+-- VIEWS PARA CONSULTAS FREQUENTES
+-- ============================================
+
+-- View de alunos ativos com suas turmas
+CREATE VIEW vw_alunos_ativos AS
+SELECT 
+    a.aluno_id,
+    a.nome AS aluno_nome,
+    a.cpf AS aluno_cpf,
+    t.nome_turma,
+    t.serie,
+    al.ano,
+    m.numero_matricula,
+    m.data_matricula
+FROM ALUNO a
+JOIN MATRICULA m ON a.aluno_id = m.aluno_id
+JOIN TURMA t ON m.turma_id = t.turma_id
+JOIN ANO_LETIVO al ON t.ano_letivo_id = al.ano_letivo_id
+WHERE m.status = 'ATIVA'
+  AND a.ativo = TRUE
+ORDER BY t.serie, t.nome_turma, a.nome;
+
+-- View de boletim de notas
+CREATE VIEW vw_boletim_aluno AS
+SELECT 
+    n.aluno_id,
+    a.nome AS aluno_nome,
+    d.nome_disciplina,
+    av.tipo AS tipo_avaliacao,
+    av.data_aplicacao,
+    n.valor AS nota,
+    av.peso,
+    t.nome_turma,
+    al.ano AS ano_letivo
+FROM NOTA n
+JOIN ALUNO a ON n.aluno_id = a.aluno_id
+JOIN AVALIACAO av ON n.avaliacao_id = av.avaliacao_id
+JOIN DISCIPLINA d ON av.disciplina_id = d.disciplina_id
+JOIN TURMA t ON av.turma_id = t.turma_id
+JOIN ANO_LETIVO al ON t.ano_letivo_id = al.ano_letivo_id
+ORDER BY a.nome, d.nome_disciplina, av.data_aplicacao;
+
+-- View de situação financeira
+CREATE VIEW vw_situacao_financeira AS
+SELECT 
+    a.aluno_id,
+    a.nome AS aluno_nome,
+    m.numero_matricula,
+    COUNT(ms.mensalidade_id) AS total_mensalidades,
+    SUM(CASE WHEN ms.status = 'PAGA' THEN ms.valor ELSE 0 END) AS total_pago,
+    SUM(CASE WHEN ms.status IN ('PENDENTE', 'ATRASADA') THEN ms.valor ELSE 0 END) AS total_pendente,
+    MAX(CASE WHEN ms.status = 'ATRASADA' THEN ms.vencimento ELSE NULL END) AS ultima_atrasada
+FROM ALUNO a
+JOIN MATRICULA m ON a.aluno_id = m.aluno_id
+JOIN MENSALIDADE ms ON m.matricula_id = ms.matricula_id
+WHERE m.status = 'ATIVA'
+GROUP BY a.aluno_id, a.nome, m.numero_matricula;
+
+-- ============================================
+-- MENSAGEM DE CONCLUSÃO
+-- ============================================
+SELECT 'Banco de dados EduControl criado com sucesso!' AS Mensagem;
+SELECT CONCAT('Total de tabelas criadas: ', 
+    (SELECT COUNT(*) FROM information_schema.tables 
+     WHERE table_schema = 'EduControl')) AS Resumo;
