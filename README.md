@@ -17,3 +17,45 @@ O projeto implementa um banco de dados relacional com 13 tabelas normalizadas at
 1. Clone o repositório:
 ```bash
 git clone https://github.com/LuizFabianoCDL/Sistema-de-Gest-o-Escolar-EduControl-
+
+📂 Estrutura do Projeto
+
+    scripts/: Contém todos os scripts SQL organizados
+
+    data/: Dados de exemplo para importação
+
+    documentation/: Documentação e diagramas
+
+📊 Tabelas Implementadas
+
+    ENDERECO
+
+    ALUNO
+
+    RESPONSAVEL
+
+    ANO_LETIVO
+
+    TURMA
+
+    DISCIPLINA
+
+    PROFESSOR
+
+    MATRICULA
+
+    ALOCACAO
+
+    AVALIACAO
+
+    NOTA
+
+    FREQUENCIA
+
+    MENSALIDADE
+
+    PAGAMENTO
+
+📄 Licença
+
+Este projeto está sob a licença MIT.
