@@ -451,3 +451,168 @@ SELECT 'Banco de dados EduControl criado com sucesso!' AS Mensagem;
 SELECT CONCAT('Total de tabelas criadas: ', 
     (SELECT COUNT(*) FROM information_schema.tables 
      WHERE table_schema = 'EduControl')) AS Resumo;
+
+# 02_insert_data.sql
+
+-- ============================================
+-- PROJETO EduControl - INSERÇÃO DE DADOS
+-- ============================================
+
+USE EduControl;
+
+-- ============================================
+-- 1. INSERÇÃO DE ENDEREÇOS
+-- ============================================
+
+INSERT INTO ENDERECO (cep, logradouro, numero, complemento, bairro, cidade, estado) VALUES
+('12345678', 'Rua das Flores', '123', 'Apto 101', 'Centro', 'São Paulo', 'SP'),
+('23456789', 'Avenida Brasil', '456', 'Sala 2', 'Jardins', 'São Paulo', 'SP'),
+('34567890', 'Rua do Comércio', '789', '', 'Centro', 'Rio de Janeiro', 'RJ'),
+('45678901', 'Alameda Santos', '321', 'Bloco B', 'Paulista', 'São Paulo', 'SP'),
+('56789012', 'Rua das Palmeiras', '654', 'Casa', 'Barra', 'Rio de Janeiro', 'RJ'),
+('67890123', 'Avenida Paulista', '987', 'Conj 303', 'Bela Vista', 'São Paulo', 'SP'),
+('78901234', 'Rua Augusta', '159', 'Loja 1', 'Consolação', 'São Paulo', 'SP'),
+('89012345', 'Rua Oscar Freire', '753', 'Apto 502', 'Jardins', 'São Paulo', 'SP'),
+('90123456', 'Avenida Atlântica', '258', '', 'Copacabana', 'Rio de Janeiro', 'RJ'),
+('01234567', 'Rua do Catete', '369', 'Sobrado', 'Catete', 'Rio de Janeiro', 'RJ');
+
+SELECT 'Endereços inseridos: ' AS Mensagem, COUNT(*) AS Total FROM ENDERECO;
+
+-- ============================================
+-- 2. INSERÇÃO DE ALUNOS
+-- ============================================
+
+INSERT INTO ALUNO (nome, cpf, data_nascimento, telefone, email, endereco_id) VALUES
+('João Silva Santos', '12345678901', '2010-05-15', '(11) 9999-8888', 'joao.silva@email.com', 1),
+('Maria Oliveira Souza', '23456789012', '2011-08-22', '(11) 9777-6666', 'maria.oliveira@email.com', 2),
+('Pedro Costa Lima', '34567890123', '2010-03-10', '(21) 9555-4444', 'pedro.costa@email.com', 3),
+('Ana Beatriz Rocha', '45678901234', '2011-11-30', '(11) 9333-2222', 'ana.rocha@email.com', 4),
+('Lucas Mendes Pereira', '56789012345', '2010-07-18', '(21) 9111-0000', 'lucas.mendes@email.com', 5),
+('Juliana Almeida', '67890123456', '2011-02-14', '(11) 9888-7777', 'juliana.almeida@email.com', 6),
+('Rafael Carvalho', '78901234567', '2010-09-25', '(11) 9666-5555', 'rafael.carvalho@email.com', 7),
+('Fernanda Torres', '89012345678', '2011-12-05', '(21) 9444-3333', 'fernanda.torres@email.com', 8),
+('Bruno Nascimento', '90123456789', '2010-04-20', '(11) 9222-1111', 'bruno.nascimento@email.com', 9),
+('Camila Duarte', '01234567890', '2011-06-12', '(21) 9000-9999', 'camila.duarte@email.com', 10);
+
+SELECT 'Alunos inseridos: ' AS Mensagem, COUNT(*) AS Total FROM ALUNO;
+
+-- ============================================
+-- 3. INSERÇÃO DE RESPONSÁVEIS
+-- ============================================
+
+INSERT INTO RESPONSAVEL (nome, cpf, telefone, email, parentesco, endereco_id) VALUES
+('Carlos Silva', '98765432101', '(11) 9999-8888', 'carlos.silva@email.com', 'PAI', 1),
+('Sandra Oliveira', '87654321012', '(11) 9777-6666', 'sandra.oliveira@email.com', 'MAE', 2),
+('Roberto Costa', '76543210123', '(21) 9555-4444', 'roberto.costa@email.com', 'PAI', 3),
+('Patricia Rocha', '65432101234', '(11) 9333-2222', 'patricia.rocha@email.com', 'MAE', 4),
+('Marcos Pereira', '54321012345', '(21) 9111-0000', 'marcos.pereira@email.com', 'PAI', 5),
+('Lucia Almeida', '43210123456', '(11) 9888-7777', 'lucia.almeida@email.com', 'MAE', 6),
+('Antonio Carvalho', '32101234567', '(11) 9666-5555', 'antonio.carvalho@email.com', 'PAI', 7),
+('Tania Torres', '21012345678', '(21) 9444-3333', 'tania.torres@email.com', 'MAE', 8),
+('Eduardo Nascimento', '10123456789', '(11) 9222-1111', 'eduardo.nascimento@email.com', 'PAI', 9),
+('Beatriz Duarte', '01234567891', '(21) 9000-9999', 'beatriz.duarte@email.com', 'MAE', 10);
+
+SELECT 'Responsáveis inseridos: ' AS Mensagem, COUNT(*) AS Total FROM RESPONSAVEL;
+
+-- ============================================
+-- 4. INSERÇÃO DE ANOS LETIVOS
+-- ============================================
+
+INSERT INTO ANO_LETIVO (ano, data_inicio, data_fim, status) VALUES
+(2023, '2023-02-01', '2023-12-15', 'ENCERRADO'),
+(2024, '2024-02-05', '2024-12-20', 'EM_ANDAMENTO'),
+(2025, '2025-02-03', '2025-12-18', 'PLANEJAMENTO');
+
+SELECT 'Anos letivos inseridos: ' AS Mensagem, COUNT(*) AS Total FROM ANO_LETIVO;
+
+-- ============================================
+-- 5. INSERÇÃO DE TURMAS
+-- ============================================
+
+INSERT INTO TURMA (nome_turma, serie, ano_letivo_id, capacidade, sala) VALUES
+('6º A', '6º ano', 2, 35, 'Sala 101'),
+('6º B', '6º ano', 2, 35, 'Sala 102'),
+('7º A', '7º ano', 2, 35, 'Sala 201'),
+('7º B', '7º ano', 2, 35, 'Sala 202'),
+('8º A', '8º ano', 2, 35, 'Sala 301');
+
+SELECT 'Turmas inseridas: ' AS Mensagem, COUNT(*) AS Total FROM TURMA;
+
+-- ============================================
+-- 6. INSERÇÃO DE DISCIPLINAS
+-- ============================================
+
+INSERT INTO DISCIPLINA (nome_disciplina, carga_horaria, ementa) VALUES
+('Matemática', 160, 'Álgebra, geometria e estatística básica'),
+('Português', 160, 'Gramática, interpretação e produção textual'),
+('História', 120, 'História do Brasil e geral'),
+('Geografia', 120, 'Geografia física e humana'),
+('Ciências', 120, 'Biologia, física e química básica'),
+('Inglês', 80, 'Língua inglesa básica'),
+('Educação Física', 80, 'Atividades físicas e esportivas'),
+('Artes', 80, 'Artes visuais e história da arte');
+
+SELECT 'Disciplinas inseridas: ' AS Mensagem, COUNT(*) AS Total FROM DISCIPLINA;
+
+-- ============================================
+-- 7. INSERÇÃO DE PROFESSORES
+-- ============================================
+
+INSERT INTO PROFESSOR (nome, cpf, email, telefone, formacao, data_contratacao) VALUES
+('Prof. Carlos Matemático', '11122233344', 'carlos.matematico@escola.com', '(11) 1111-1111', 'Licenciatura em Matemática', '2018-03-01'),
+('Prof. Ana Linguista', '22233344455', 'ana.linguista@escola.com', '(11) 2222-2222', 'Letras Português/Inglês', '2019-05-15'),
+('Prof. Marcos Historiador', '33344455566', 'marcos.historiador@escola.com', '(11) 3333-3333', 'Licenciatura em História', '2020-02-20'),
+('Prof. Clara Geógrafa', '44455566677', 'clara.geografa@escola.com', '(11) 4444-4444', 'Licenciatura em Geografia', '2017-08-10'),
+('Prof. Roberto Cientista', '55566677788', 'roberto.cientista@escola.com', '(11) 5555-5555', 'Licenciatura em Ciências Biológicas', '2021-01-30'),
+('Prof. Beatriz Artista', '66677788899', 'beatriz.artista@escola.com', '(11) 6666-6666', 'Licenciatura em Artes Visuais', '2016-11-05'),
+('Prof. Eduardo Educador', '77788899900', 'eduardo.educador@escola.com', '(11) 7777-7777', 'Licenciatura em Educação Física', '2019-07-22');
+
+SELECT 'Professores inseridos: ' AS Mensagem, COUNT(*) AS Total FROM PROFESSOR;
+
+-- ============================================
+-- 8. INSERÇÃO DE MATRÍCULAS
+-- ============================================
+
+INSERT INTO MATRICULA (aluno_id, turma_id, ano_letivo_id, numero_matricula, data_matricula, status) VALUES
+(1, 1, 2, '20240001', '2024-01-15', 'ATIVA'),
+(2, 1, 2, '20240002', '2024-01-16', 'ATIVA'),
+(3, 2, 2, '20240003', '2024-01-17', 'ATIVA'),
+(4, 2, 2, '20240004', '2024-01-18', 'ATIVA'),
+(5, 3, 2, '20240005', '2024-01-19', 'ATIVA'),
+(6, 3, 2, '20240006', '2024-01-20', 'ATIVA'),
+(7, 4, 2, '20240007', '2024-01-21', 'ATIVA'),
+(8, 4, 2, '20240008', '2024-01-22', 'ATIVA'),
+(9, 5, 2, '20240009', '2024-01-23', 'ATIVA'),
+(10, 5, 2, '20240010', '2024-01-24', 'ATIVA');
+
+SELECT 'Matrículas inseridas: ' AS Mensagem, COUNT(*) AS Total FROM MATRICULA;
+
+-- ============================================
+-- 9. INSERÇÃO DE ALOCOAÇÕES (PROFESSOR-TURMA-DISCIPLINA)
+-- ============================================
+
+INSERT INTO ALOCACAO (professor_id, turma_id, disciplina_id, dia_semana, horario, data_inicio) VALUES
+-- 6º A
+(1, 1, 1, 'SEG', '08:00:00', '2024-02-05'), -- Matemática
+(2, 1, 2, 'TER', '08:00:00', '2024-02-05'), -- Português
+(3, 1, 3, 'QUA', '08:00:00', '2024-02-05'), -- História
+(4, 1, 4, 'QUI', '08:00:00', '2024-02-05'), -- Geografia
+-- 6º B
+(1, 2, 1, 'SEG', '10:00:00', '2024-02-05'),
+(2, 2, 2, 'TER', '10:00:00', '2024-02-05'),
+(3, 2, 3, 'QUA', '10:00:00', '2024-02-05'),
+(4, 2, 4, 'QUI', '10:00:00', '2024-02-05'),
+-- 7º A
+(5, 3, 5, 'SEG', '13:00:00', '2024-02-05'), -- Ciências
+(6, 3, 8, 'TER', '13:00:00', '2024-02-05'), -- Artes
+(7, 3, 7, 'QUA', '13:00:00', '2024-02-05'); -- Educação Física
+
+SELECT 'Alocações inseridas: ' AS Mensagem, COUNT(*) AS Total FROM ALOCACAO;
+
+-- ============================================
+-- 10. INSERÇÃO DE AVALIAÇÕES
+-- ============================================
+
+INSERT INTO AVALIACAO (turma_id, disciplina_id, data_aplicacao, tipo, peso, descricao) VALUES
+-- Avaliações para 6º A - Matemática
+(1, 1, '2024-
